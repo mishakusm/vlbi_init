@@ -12,6 +12,16 @@
 #include <sys/ioctl.h>
 
 
+#ifdef __FreeBSD__
+#include <sys/endian.h> /* le64toh */
+#include <machine/param.h>
+
+#include <pthread_np.h> /* pthread w/ affinity */
+#include <sys/cpuset.h> /* cpu_set */
+#include <net/if_dl.h>  /* LLADDR */
+#endif  /* __FreeBSD__ */
+
+
 using namespace std;
 
 #define OPT_PREFETCH	1
