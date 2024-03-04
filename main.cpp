@@ -21,6 +21,11 @@
 #include <net/if_dl.h>  /* LLADDR */
 #endif  /* __FreeBSD__ */
 
+#ifdef __FreeBSD__
+#include <net/if_tun.h>
+#define TAP_CLONEDEV	"/dev/tap"
+#endif /* __FreeBSD */
+
 
 using namespace std;
 
