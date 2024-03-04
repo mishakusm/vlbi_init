@@ -5,8 +5,27 @@
 #include <fstream>
 #include <netinet/ether.h>
 #include <netinet/udp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include <fcntl.h>
+#include <sys/ioctl.h>
+
+
 using namespace std;
 
+#define OPT_PREFETCH	1
+#define OPT_ACCESS	2
+#define OPT_COPY	4
+#define OPT_MEMCPY	8
+#define OPT_TS		16	/* add a timestamp */
+#define OPT_INDIRECT	32	/* use indirect buffers, tx only */
+#define OPT_DUMP	64	/* dump rx/tx traffic */
+#define OPT_RUBBISH	256	/* send whatever the buffers contain */
+#define OPT_RANDOM_SRC  512
+#define OPT_RANDOM_DST  1024
+#define OPT_PPS_STATS   2048
+#define OPT_UPDATE_CSUM 4096
 
 #define VIRT_HDR_1	10	/* length of a base vnet-hdr */
 #define VIRT_HDR_2	12	/* length of the extenede vnet-hdr */
@@ -16,6 +35,10 @@ struct virt_header
 	uint8_t fields[VIRT_HDR_MAX];
 };
 
+struct mac_range {
+	const char *name;
+	struct ether_addr start, end;
+};
 
 #define MAX_BODYSIZE	65536
 
@@ -78,7 +101,8 @@ int config_header (pkt_vldi *pkt)
 	int number_df = pkt->VDIF_Data_Frame.vdif_header[1].to_int & 0x7FFFFF;
 	if (number_df > 49999) 
 	{
-		pkt->VDIF_Data_Frame.vdif_header[1].to_int = pkt->VDIF_Data_Frame.vdif_header[1].to_int & 0xFF000000;
+		pkt->VDIF_Data_Frame.vdif_header[1].to_int = pkt->VDIF_Data_Frame.vdif_header[1].to_int & 0xFE000000;
+		number_df = pkt->VDIF_Data_Frame.vdif_header[1].to_int & 0x7FFFFF;
 	}
 
         cout << "Frame Number in second:" << number_df << endl;
@@ -95,6 +119,21 @@ int config_header (pkt_vldi *pkt)
 
 
 	return 0;
+}
+
+
+int vdif_pkt_gen (int time)
+{
+int fd = open("/dev/netmap", O_RDWR);
+    if (fd < 0) {
+        perror("Failed to open /dev/netmap");
+        exit(EXIT_FAILURE);
+    }
+
+
+
+	
+return 0;
 }
 
 
@@ -115,11 +154,7 @@ int main ()
 		printf("%d\n", pkt->VDIF_Data_Frame.vdif_header[i].to_int);
 	}
 
-
-	pkt->VDIF_Data_Frame.vdif_header[1].to_int = pkt->VDIF_Data_Frame.vdif_header[1].to_int + 50000;
 	config_header (pkt);
-
-
 
 	getchar();
 
