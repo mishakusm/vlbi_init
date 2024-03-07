@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <cstdint>
 #include <fstream>
-#include <neе/ethernet.h>
+#include <net/ethernet.h>
 #include <netinet/udp.h>
 #include <sys/types.h>
 #include <sys/stat.h>
