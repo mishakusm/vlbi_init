@@ -10,7 +10,7 @@
 #include <strings.h>
 #include <string.h>
 #include <net/netmap_user.h>
-
+#include <arpa/inet.h>
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -173,20 +173,20 @@ int fd = open("/dev/netmap", O_RDWR);
     time_t start_time = time(NULL);
     while (difftime(time(NULL), start_time) < 10) 
     {
-    int32_t cur = txring->cur;
-    struct netmap_slot *slot = &txring->slot[cur];
+   	 int32_t cur = txring->cur;
+   	 struct netmap_slot *slot = &txring->slot[cur];
 
-    // Put data to slot
-    memcpy(NETMAP_BUF(txring, slot->buf_idx), pkt, sizeof(struct pkt_vldi));
+   	 // Put data to slot	
+    	memcpy(NETMAP_BUF(txring, slot->buf_idx), pkt, sizeof(struct pkt_vldi));
 
-    // packet size
-    slot->len = sizeof(struct pkt_vldi);
+	    // packet size
+    	slot->len = sizeof(struct pkt_vldi);
 
-    // Curr slot
-    txring->cur = NETMAP_RING_NEXT(txring, cur);
+    	// Curr slot
+    	txring->cur = NETMAP_RING_NEXT(txring, cur);
 
-    // SEND PKT
-    ioctl(fd, NIOCTXSYNC, NULL);
+    	// SEND PKT
+    	ioctl(fd, NIOCTXSYNC, NULL);
     }
 
     close(fd);
@@ -217,11 +217,12 @@ int main ()
 	config_header (pkt);
 
 	int menu;
-	std::cin << menu;
+	std::cin >> menu;
 	
 	if (menu==1)
 	{
 		vdif_pkt_gen (pkt);
+		return 0;
 	}
 	else
 	{
