@@ -167,10 +167,26 @@ int fd = open("/dev/netmap", O_RDWR);
     // copy mac
     memcpy(pkt->eh.ether_dhost, "\xff\xff\xff\xff\xff\xff", ETHER_ADDR_LEN); // dest
     memcpy(pkt->eh.ether_shost, "\x08\x00\x27\x4b\x45\x6e", ETHER_ADDR_LEN); // src
+    pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
+
+	
     time_t start_time = time(NULL);
     while (difftime(time(NULL), start_time) < 10) 
     {
-        
+    int32_t cur = txring->cur;
+    struct netmap_slot *slot = &txring->slot[cur];
+
+    // Put data to slot
+    memcpy(NETMAP_BUF(txring, slot->buf_idx), pkt, sizeof(struct pkt_vldi));
+
+    // packet size
+    slot->len = sizeof(struct pkt_vldi);
+
+    // Curr slot
+    txring->cur = NETMAP_RING_NEXT(txring, cur);
+
+    // SEND PKT
+    ioctl(fd, NIOCTXSYNC, NULL);
     }
 
     close(fd);
