@@ -159,7 +159,7 @@ int fd = open("/dev/netmap", O_RDWR);
     struct netmap_ring *txring = NETMAP_TXRING(nifp, 0);
 
     ether_aton_r("ff:ff:ff:ff:ff:ff", pkt->eh.ether_dhost); // MAC-адрес получателя
-    ether_aton_r("aa:bb:cc:dd:ee:ff", pkt->eh.ether_shost); // MAC-адрес отправителя
+    ether_aton_r("08:00:27:4b:45:6e", pkt->eh.ether_shost); // MAC-адрес отправителя
 
     time_t start_time = time(NULL);
     while (difftime(time(NULL), start_time) < 10) {
