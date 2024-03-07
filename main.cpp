@@ -148,28 +148,23 @@ int fd = open("/dev/netmap", O_RDWR);
         perror("Failed to open /dev/netmap");
         exit(EXIT_FAILURE);
     }
-// Открываем интерфейс Netmap (замените "netmap:eth0" на нужный интерфейс)
+
     struct nmreq req;
     bzero(&req, sizeof(req));
     strncpy(req.nr_name, "netmap:eth0", sizeof(req.nr_name));
     req.nr_version = NETMAP_API;
-    ioctl(fd, NIOCGINFO, &req);
+    ioctl(fd, NIOCREGIF, &req);
 
-    struct netmap_if *nifp = NETMAP_IF(req.nifp);
+    struct netmap_if *nifp = NETMAP_IF(&req ,req.nr_offset);
     struct netmap_ring *txring = NETMAP_TXRING(nifp, 0);
 
-    ether_aton_r("ff:ff:ff:ff:ff:ff", pkt->eh.ether_dhost); // MAC-адрес получателя
-    ether_aton_r("08:00:27:4b:45:6e", pkt->eh.ether_shost); // MAC-адрес отправителя
+    ether_aton_r("ff:ff:ff:ff:ff:ff", pkt->eh.ether_dhost); // dest
+    ether_aton_r("08:00:27:4b:45:6e", pkt->eh.ether_shost); // src
 
     time_t start_time = time(NULL);
-    while (difftime(time(NULL), start_time) < 10) {
-        // Отправляем пакет
-        // ...
+    while (difftime(time(NULL), start_time) < 10) 
+    {
         
-        // Задержка между отправками (например, использование nanosleep)
-        // ...
-
-        // Возможно, стоит уменьшить задержку для увеличения частоты отправки пакетов
     }
 
     close(fd);
