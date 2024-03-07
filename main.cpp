@@ -158,9 +158,15 @@ int fd = open("/dev/netmap", O_RDWR);
     struct netmap_if *nifp = NETMAP_IF(&req ,req.nr_offset);
     struct netmap_ring *txring = NETMAP_TXRING(nifp, 0);
 
+/*
     ether_aton_r("ff:ff:ff:ff:ff:ff", pkt->eh.ether_dhost); // dest
     ether_aton_r("08:00:27:4b:45:6e", pkt->eh.ether_shost); // src
+*/
 
+	
+    // copy mac
+    memcpy(pkt->eh.ether_dhost, "\xff\xff\xff\xff\xff\xff", ETHER_ADDR_LEN); // dest
+    memcpy(pkt->eh.ether_shost, "\x08\x00\x27\x4b\x45\x6e", ETHER_ADDR_LEN); // src
     time_t start_time = time(NULL);
     while (difftime(time(NULL), start_time) < 10) 
     {
