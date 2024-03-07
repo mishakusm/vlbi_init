@@ -216,6 +216,16 @@ int main ()
 
 	config_header (pkt);
 
-	getchar();
+	int menu;
+	std::cin << menu;
+	
+	if (menu==1)
+	{
+		vdif_pkt_gen (pkt);
+	}
+	else
+	{
+		return 0;
+	}
 
 }
