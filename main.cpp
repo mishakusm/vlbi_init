@@ -7,6 +7,10 @@
 #include <netinet/udp.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <strings.h>
+#include <string.h>
+#include <net/netmap_user.h>
+
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -137,15 +141,39 @@ int config_header (pkt_vldi *pkt)
 }
 
 
-int vdif_pkt_gen (int time)
+int vdif_pkt_gen (pkt_vldi *pkt)
 {
 int fd = open("/dev/netmap", O_RDWR);
     if (fd < 0) {
         perror("Failed to open /dev/netmap");
         exit(EXIT_FAILURE);
     }
+// Открываем интерфейс Netmap (замените "netmap:eth0" на нужный интерфейс)
+    struct nmreq req;
+    bzero(&req, sizeof(req));
+    strncpy(req.nr_name, "netmap:eth0", sizeof(req.nr_name));
+    req.nr_version = NETMAP_API;
+    ioctl(fd, NIOCGINFO, &req);
 
+    struct netmap_if *nifp = NETMAP_IF(req.nifp);
+    struct netmap_ring *txring = NETMAP_TXRING(nifp, 0);
 
+    ether_aton_r("ff:ff:ff:ff:ff:ff", pkt->eh.ether_dhost); // MAC-адрес получателя
+    ether_aton_r("aa:bb:cc:dd:ee:ff", pkt->eh.ether_shost); // MAC-адрес отправителя
+
+    time_t start_time = time(NULL);
+    while (difftime(time(NULL), start_time) < 10) {
+        // Отправляем пакет
+        // ...
+        
+        // Задержка между отправками (например, использование nanosleep)
+        // ...
+
+        // Возможно, стоит уменьшить задержку для увеличения частоты отправки пакетов
+    }
+
+    close(fd);
+    return 0;
 
 	
 return 0;
