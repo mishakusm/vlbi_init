@@ -1,3 +1,7 @@
+//////////////////////////////////////////////////////
+////////////////////////////////////
+
+#define NETMAP_WITH_LIBS
 #include <iostream>
 #include <unistd.h>
 #include <stdio.h>
@@ -49,6 +53,11 @@ using namespace std;
 #define VIRT_HDR_1	10	/* length of a base vnet-hdr */
 #define VIRT_HDR_2	12	/* length of the extenede vnet-hdr */
 #define VIRT_HDR_MAX	VIRT_HDR_2
+
+#define MAC_ADDRESS_LENGTH 6
+
+
+
 struct virt_header 
 {
 	uint8_t fields[VIRT_HDR_MAX];
@@ -140,58 +149,70 @@ int config_header (pkt_vldi *pkt)
 	return 0;
 }
 
+int getMacAddress(unsigned char *macAddress)
+{
+	char macAddressStr[18];
+	scanf("%17s", macAddressStr);
+	
+	int i = 0;
+	char *token = strtok (macAddressStr, ":");
+	while (token != NULL)
+	{
+		macAddress[i++]=(unsigned char)strtol(token, NULL, 16);
+		token = strtok(NULL, ":");		
+	}
+
+	return 0;
+}
+
+
 
 int vdif_pkt_gen (pkt_vldi *pkt)
 {
-int fd = open("/dev/netmap", O_RDWR);
-    if (fd < 0) {
-        perror("Failed to open /dev/netmap");
-        exit(EXIT_FAILURE);
-    }
 
-    struct nmreq req;
-    bzero(&req, sizeof(req));
-    strncpy(req.nr_name, "netmap:eth0", sizeof(req.nr_name));
-    req.nr_version = NETMAP_API;
-    ioctl(fd, NIOCREGIF, &req);
-
-    struct netmap_if *nifp = NETMAP_IF(&req ,req.nr_offset);
-    struct netmap_ring *txring = NETMAP_TXRING(nifp, 0);
-
-/*
-    ether_aton_r("ff:ff:ff:ff:ff:ff", pkt->eh.ether_dhost); // dest
-    ether_aton_r("08:00:27:4b:45:6e", pkt->eh.ether_shost); // src
-*/
-
-	
-    // copy mac
-    memcpy(pkt->eh.ether_dhost, "\xff\xff\xff\xff\xff\xff", ETHER_ADDR_LEN); // dest
-    memcpy(pkt->eh.ether_shost, "\x08\x00\x27\x4b\x45\x6e", ETHER_ADDR_LEN); // src
-    pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
-
-	
-    time_t start_time = time(NULL);
-    while (difftime(time(NULL), start_time) < 10) 
+    struct nm_desc *nmd;
+    nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
+    if (nmd == nullptr) 
     {
-   	 int32_t cur = txring->cur;
-   	 struct netmap_slot *slot = &txring->slot[cur];
-
-   	 // Put data to slot	
-    	memcpy(NETMAP_BUF(txring, slot->buf_idx), pkt, sizeof(struct pkt_vldi));
-
-	    // packet size
-    	slot->len = sizeof(struct pkt_vldi);
-
-    	// Curr slot
-    	txring->cur = NETMAP_RING_NEXT(txring, cur);
-
-    	// SEND PKT
-    	ioctl(fd, NIOCTXSYNC, NULL);
+        std::cerr << "Failed to open netmap device" << std::endl;
+        return 1;
     }
 
-    close(fd);
-    return 0;
 
+
+	
+    struct netmap_ring *txring;
+    txring = (netmap_ring*) malloc (sizeof (netmap_ring));
+
+
+    u_int cur=txring->cur;    
+    u_int  n = nm_ring_space(txring);
+//   cout << endl << "HERE" << endl << cur << endl;
+//   cout << endl << "HEREE" << endl << txring->slot[cur].buf_idx;
+
+    // copy mac
+   // memcpy(pkt->eh.ether_dhost, "\xff\xff\xff\xff\xff\xff", ETHER_ADDR_LEN); // dest
+   // memcpy(pkt->eh.ether_shost, "\x08\x00\x27\x4b\x45\x6e", ETHER_ADDR_LEN); // src
+    pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
+ 
+    	
+    
+    for (int rx =0; rx < n; rx++) 
+    {
+	
+    	u_int buf_idx = txring->slot[cur].buf_idx;
+  	char* tx_buf = NETMAP_BUF(txring, buf_idx);
+	int frame_len = sizeof(pkt);
+	memcpy(tx_buf,  pkt, frame_len);
+	txring->slot[cur].len = frame_len;
+   	txring->cur = nm_ring_next(txring, cur);
+	cur = txring->cur;
+	
+     }
+
+    nm_close(nmd);
+ 
+	free (txring);
 	
 return 0;
 }
@@ -200,6 +221,7 @@ return 0;
 
 int main ()
 {
+	
 	pkt_vldi *pkt = new pkt_vldi;
 
 	fill_pkt_body (pkt);
@@ -216,11 +238,41 @@ int main ()
 
 	config_header (pkt);
 
-	int menu;
+        int menu;
+	int check;
+
+
 	std::cin >> menu;
-	
-	if (menu==1)
+ 	cout << "Type 1 for start transmit" << endl;	
+
+
+	if (menu == 1)
 	{
+	        unsigned char dest[MAC_ADDRESS_LENGTH];
+	        unsigned char src[MAC_ADDRESS_LENGTH];
+		cout << "Enter destonition mac address:" << endl;
+		check = getMacAddress(dest);
+		if (check !=0)
+		{
+			cout << "Error in getting mac!";
+		}
+	
+		cout << "Enter source mac address:" << endl;
+		
+		check = getMacAddress(src);
+		if (check!=0)
+		{
+			cout << "Error in getting mac!";
+		}		
+
+		
+		for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
+		{
+			
+			pkt->eh.ether_dhost[i]=dest[i];
+			pkt->eh.ether_shost[i]=src[i];
+		}
+	
 		vdif_pkt_gen (pkt);
 		return 0;
 	}
