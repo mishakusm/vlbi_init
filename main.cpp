@@ -15,6 +15,8 @@
 #include <string.h>
 #include <net/netmap_user.h>
 #include <arpa/inet.h>
+#include <time.h>
+
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -211,8 +213,8 @@ int vdif_pkt_gen (pkt_vldi *pkt)
      }
 
     nm_close(nmd);
- 
-	free (txring);
+    config_header (pkt)
+    free (txring);
 	
 return 0;
 }
@@ -221,6 +223,7 @@ return 0;
 
 int main ()
 {
+	
 	
 	pkt_vldi *pkt = new pkt_vldi;
 
@@ -240,7 +243,7 @@ int main ()
 
         int menu;
 	int check;
-
+	int time;
 
 	std::cin >> menu;
  	cout << "Type 1 for start transmit" << endl;	
@@ -255,6 +258,7 @@ int main ()
 		if (check !=0)
 		{
 			cout << "Error in getting mac!";
+			return 2;
 		}
 	
 		cout << "Enter source mac address:" << endl;
@@ -263,8 +267,9 @@ int main ()
 		if (check!=0)
 		{
 			cout << "Error in getting mac!";
+			return 3;
 		}		
-
+	
 		
 		for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
 		{
@@ -272,8 +277,23 @@ int main ()
 			pkt->eh.ether_dhost[i]=dest[i];
 			pkt->eh.ether_shost[i]=src[i];
 		}
-	
-		vdif_pkt_gen (pkt);
+		cout << "How many sec?" << endl;
+		cin >> time;
+		
+
+		clock_t start_time = clock(); // Запоминаем время начала выполнения
+    clock_t current_time;
+
+   		do 
+		{
+			check = vdif_pkt_gen (pkt);
+			if (check!=0)
+			{
+				cout << "Error in sending packet!";
+				return 3;
+			}
+			current_time = clock();
+		}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
 		return 0;
 	}
 	else
