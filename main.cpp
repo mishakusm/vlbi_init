@@ -213,7 +213,7 @@ int vdif_pkt_gen (pkt_vldi *pkt)
      }
 
     nm_close(nmd);
-    config_header (pkt)
+    config_header (pkt);
     free (txring);
 	
 return 0;
