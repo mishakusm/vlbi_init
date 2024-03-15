@@ -172,14 +172,6 @@ int getMacAddress(unsigned char *macAddress)
 int vdif_pkt_gen (pkt_vldi *pkt)
 {
 
-    struct nm_desc *nmd;
-    nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
-    if (nmd == nullptr) 
-    {
-        std::cerr << "Failed to open netmap device" << std::endl;
-        return 1;
-    }
-
 
 
 	
@@ -212,7 +204,7 @@ int vdif_pkt_gen (pkt_vldi *pkt)
 	
      }
 
-    nm_close(nmd);
+    
     config_header (pkt);
     free (txring);
 	
@@ -251,6 +243,15 @@ int main ()
 
 	if (menu == 1)
 	{
+		
+   		struct nm_desc *nmd;
+   		nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
+ 		if (nmd == nullptr) 
+   		{
+    			cerr << "Failed to open netmap device" << endl;
+    			return 1;
+   		}
+
 	        unsigned char dest[MAC_ADDRESS_LENGTH];
 	        unsigned char src[MAC_ADDRESS_LENGTH];
 		cout << "Enter destonition mac address:" << endl;
@@ -294,9 +295,11 @@ int main ()
 			}
 			current_time = clock();
 		}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
+		nm_close(nmd);
 		return 0;
 	}
 	else
+		
 	{
 		return 0;
 	}
