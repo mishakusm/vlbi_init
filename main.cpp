@@ -233,12 +233,12 @@ int main (int arc, char **argv)
 				if (strlen(mac_address_str_s) != 17) 
 				{
        				 	printf("Invalid MAC address format (source). Format expected XX:XX:XX:XX:XX:XX\n");
-        				return 1;
+        				return 3;
    				}
 				if (sscanf(mac_address_str_s, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &src[0], &src[1], &src[2], &src[3], &src[4], &src[5]) != MAC_ADDRESS_LENGTH) 
 				{
         				printf("Error in getting mac!\n");
-        				return 2;
+        				return 4;
 				}
 			break;
 			case 't':
@@ -253,7 +253,7 @@ int main (int arc, char **argv)
  			if (nmd == nullptr) 
    			{
     				cerr << "Failed to open netmap device" << endl;
-    				return 1;
+    				return 5;
    			}
 
 	  	      
@@ -265,13 +265,12 @@ int main (int arc, char **argv)
 				pkt->eh.ether_dhost[i]=dest[i];
 				pkt->eh.ether_shost[i]=src[i];
 			}
-			//cout << "How many sec?" << endl;
-			//cin >> time;
+			
 		
 
 			clock_t start_time = clock(); // Запоминаем время начала выполнения
     			clock_t current_time;
-			cout << "\n\n\nHERE\n\n\n" << endl;
+			
    			do 
 			{
 				int check = vdif_pkt_gen (pkt);
