@@ -151,30 +151,10 @@ int config_header (pkt_vldi *pkt)
 	return 0;
 }
 
-int getMacAddress(unsigned char *macAddress)
-{
-	char macAddressStr[18];
-	scanf("%17s", macAddressStr);
-	
-	int i = 0;
-	char *token = strtok (macAddressStr, ":");
-	while (token != NULL)
-	{
-		macAddress[i++]=(unsigned char)strtol(token, NULL, 16);
-		token = strtok(NULL, ":");		
-	}
-
-	return 0;
-}
-
 
 
 int vdif_pkt_gen (pkt_vldi *pkt)
 {
-
-
-
-	
     struct netmap_ring *txring;
     txring = (netmap_ring*) malloc (sizeof (netmap_ring));
 
@@ -189,8 +169,6 @@ int vdif_pkt_gen (pkt_vldi *pkt)
    // memcpy(pkt->eh.ether_shost, "\x08\x00\x27\x4b\x45\x6e", ETHER_ADDR_LEN); // src
     pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
  
-    	
-    
     for (int rx =0; rx < n; rx++) 
     {
 	
@@ -203,8 +181,6 @@ int vdif_pkt_gen (pkt_vldi *pkt)
 	cur = txring->cur;
 	
      }
-
-    
     config_header (pkt);
     free (txring);
 	
@@ -271,10 +247,7 @@ int main (int arc, char **argv)
 			break;
 		}
 	}
-				
-
-	
-      
+			
    			struct nm_desc *nmd;
    			nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
  			if (nmd == nullptr) 
@@ -287,7 +260,6 @@ int main (int arc, char **argv)
 			//check = getMacAddress(dest);
 			//check = getMacAddress(src);
 
-		
 			for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
 			{
 				pkt->eh.ether_dhost[i]=dest[i];
@@ -311,8 +283,7 @@ int main (int arc, char **argv)
 				current_time = clock();
 			}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
 			nm_close(nmd);
-			return 0;
-		
+			
 	
 return 0;
 
