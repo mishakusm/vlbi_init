@@ -1,5 +1,5 @@
-//////////////////////////////////////////////////////
-////////////////////////////////////
+// args
+
 
 #define NETMAP_WITH_LIBS
 #include <iostream>
@@ -213,12 +213,14 @@ return 0;
 
 
 
-int main ()
+int main (int arc, char **argv)
 {
-	
-	
+	clock_t time;
 	pkt_vldi *pkt = new pkt_vldi;
-
+	unsigned char dest[MAC_ADDRESS_LENGTH];
+	char *mac_address_str_d;
+	unsigned char src[MAC_ADDRESS_LENGTH];
+	char *mac_address_str_s;
 	fill_pkt_body (pkt);
 
 	for (int k = 0; k < MAX_BODYSIZE; k++)
@@ -232,76 +234,86 @@ int main ()
 	}
 
 	config_header (pkt);
-
-        int menu;
-	int check;
-	int time;
-
-	std::cin >> menu;
- 	cout << "Type 1 for start transmit" << endl;	
-
-
-	if (menu == 1)
+	int ch;
+	while ((ch = getopt(arc, argv, "d:s:t:")) != -1) 
 	{
-		
-   		struct nm_desc *nmd;
-   		nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
- 		if (nmd == nullptr) 
-   		{
-    			cerr << "Failed to open netmap device" << endl;
-    			return 1;
-   		}
-
-	        unsigned char dest[MAC_ADDRESS_LENGTH];
-	        unsigned char src[MAC_ADDRESS_LENGTH];
-		cout << "Enter destonition mac address:" << endl;
-		check = getMacAddress(dest);
-		if (check !=0)
-		{
-			cout << "Error in getting mac!";
-			return 2;
+		switch (ch)
+		{	
+			case 'd':
+				mac_address_str_d = optarg;
+				if (strlen(mac_address_str_d) != 17) 
+				{
+       				 	printf("Invalid MAC address format (destonition). Format expected XX:XX:XX:XX:XX:XX\n");
+        				return 1;
+   				}
+				if (sscanf(mac_address_str_d, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2], &dest[3], &dest[4], &dest[5]) != MAC_ADDRESS_LENGTH) 
+				{
+        				printf("Error in getting mac!\n");
+        				return 2;
+    				}
+			break;
+			case 's':
+				mac_address_str_s = optarg;
+				if (strlen(mac_address_str_s) != 17) 
+				{
+       				 	printf("Invalid MAC address format (source). Format expected XX:XX:XX:XX:XX:XX\n");
+        				return 1;
+   				}
+				if (sscanf(mac_address_str_s, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &src[0], &src[1], &src[2], &src[3], &src[4], &src[5]) != MAC_ADDRESS_LENGTH) 
+				{
+        				printf("Error in getting mac!\n");
+        				return 2;
+				}
+			break;
+			case 't':
+				char *time_str = optarg;
+			    	time = (clock_t)atol(time_str);
+			break;
 		}
-	
-		cout << "Enter source mac address:" << endl;
-		
-		check = getMacAddress(src);
-		if (check!=0)
-		{
-			cout << "Error in getting mac!";
-			return 3;
-		}		
-	
-		
-		for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
-		{
-			
-			pkt->eh.ether_dhost[i]=dest[i];
-			pkt->eh.ether_shost[i]=src[i];
-		}
-		cout << "How many sec?" << endl;
-		cin >> time;
-		
+	}
+				
 
-		clock_t start_time = clock(); // Запоминаем время начала выполнения
-    clock_t current_time;
+	
+      
+   			struct nm_desc *nmd;
+   			nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
+ 			if (nmd == nullptr) 
+   			{
+    				cerr << "Failed to open netmap device" << endl;
+    				return 1;
+   			}
 
-   		do 
-		{
-			check = vdif_pkt_gen (pkt);
-			if (check!=0)
+	  	      
+			//check = getMacAddress(dest);
+			//check = getMacAddress(src);
+
+		
+			for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
 			{
-				cout << "Error in sending packet!";
-				return 3;
+				pkt->eh.ether_dhost[i]=dest[i];
+				pkt->eh.ether_shost[i]=src[i];
 			}
-			current_time = clock();
-		}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
-		nm_close(nmd);
-		return 0;
-	}
-	else
+			//cout << "How many sec?" << endl;
+			//cin >> time;
 		
-	{
-		return 0;
-	}
+
+			clock_t start_time = clock(); // Запоминаем время начала выполнения
+    			clock_t current_time;
+			cout << "\n\n\nHERE\n\n\n" << endl;
+   			do 
+			{
+				int check = vdif_pkt_gen (pkt);
+				if (check!=0)
+				{
+					cout << "Error in sending packet!";
+					return 3;
+				}
+				current_time = clock();
+			}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
+			nm_close(nmd);
+			return 0;
+		
+	
+return 0;
 
 }
