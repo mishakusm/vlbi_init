@@ -191,7 +191,7 @@ return 0;
 
 int main (int arc, char **argv)
 {
-	char interface[20];
+	char* interface;
 	
 
 	clock_t time = 5;
