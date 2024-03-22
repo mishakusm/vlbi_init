@@ -192,6 +192,8 @@ return 0;
 int main (int arc, char **argv)
 {
 	char* interface;
+	interface=(char*20) malloc (sizeof (char*20));
+
 	clock_t time = 5;
 	pkt_vldi *pkt = new pkt_vldi;
 	unsigned char dest[MAC_ADDRESS_LENGTH];
