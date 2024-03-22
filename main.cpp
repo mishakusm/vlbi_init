@@ -245,18 +245,19 @@ int main (int arc, char **argv)
 				char *time_str = optarg;
 			    	time = (clock_t)atol(time_str);
 			break;
+			
 			case 'i':
 				char* interface = optarg;
-				char* nm_interface = "netmap:";
-				strcat(nm_interface, interface);
 			break;
 		}
 	}
-			if (src == NULL || dest == NULL) 
+			if (src == NULL || dest == NULL || interface == NULL) 
 			{
-      			        fprintf(stderr, "Both -d and -s options are required.\n");
+      			        fprintf(stderr, "-i, -d and -s options are required.\n");
       				return 5;
-   			}			
+   			}
+			char* nm_interface = "netmap:";
+			strcat(nm_interface, interface);
    			struct nm_desc *nmd;
    			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
  			if (nmd == nullptr) 
