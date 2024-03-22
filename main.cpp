@@ -191,8 +191,8 @@ return 0;
 
 int main (int arc, char **argv)
 {
-	char* interface;
-	interface=(char*) malloc (sizeof(char)*20);
+	char[20] interface;
+	
 
 	clock_t time = 5;
 	pkt_vldi *pkt = new pkt_vldi;
@@ -261,8 +261,8 @@ int main (int arc, char **argv)
       			        fprintf(stderr, "-i, -d and -s options are required.\n");
       				return 5;
    			}
-			char* nm_interface;
-			nm_interface=(char*) malloc (sizeof(char)*30);
+			char[30] nm_interface;
+			
 			nm_interface = "netmap:"
 			strcat(nm_interface, interface);
    			struct nm_desc *nmd;
