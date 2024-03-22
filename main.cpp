@@ -263,7 +263,8 @@ int main (int arc, char **argv)
    			}
 			char nm_interface[30];
 			
-			nm_interface = "netmap:";
+			//nm_interface = "netmap:";
+			strncpy(nm_interface,"netmap:",sizeof(char)*8);
 			strcat(nm_interface, interface);
    			struct nm_desc *nmd;
    			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
