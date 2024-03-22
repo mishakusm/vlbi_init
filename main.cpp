@@ -211,7 +211,7 @@ int main (int arc, char **argv)
 
 	config_header (pkt);
 	int ch;
-	while ((ch = getopt(arc, argv, "d:s:t:")) != -1) 
+	while ((ch = getopt(arc, argv, "d:s:t:i:")) != -1) 
 	{
 		switch (ch)
 		{	
@@ -245,6 +245,11 @@ int main (int arc, char **argv)
 				char *time_str = optarg;
 			    	time = (clock_t)atol(time_str);
 			break;
+			case 'i':
+				char* interface = optarg;
+				char* nm_interface = "netmap:";
+				strcat(nm_interface, interface);
+			break;
 		}
 	}
 			if (src == NULL || dest == NULL) 
@@ -253,7 +258,7 @@ int main (int arc, char **argv)
       				return 5;
    			}			
    			struct nm_desc *nmd;
-   			nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
+   			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
  			if (nmd == nullptr) 
    			{
     				cerr << "Failed to open netmap device" << endl;
