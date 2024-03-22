@@ -197,9 +197,9 @@ int main (int arc, char **argv)
 	clock_t time = 5;
 	pkt_vldi *pkt = new pkt_vldi;
 	unsigned char dest[MAC_ADDRESS_LENGTH];
-	char *mac_address_str_d;
+	char *mac_address_str_d = NULL;
 	unsigned char src[MAC_ADDRESS_LENGTH];
-	char *mac_address_str_s;
+	char *mac_address_str_s = NULL;
 	fill_pkt_body (pkt);
 
 	for (int k = 0; k < MAX_BODYSIZE; k++)
@@ -256,7 +256,7 @@ int main (int arc, char **argv)
 			
 		}
 	}
-			if (src == NULL || dest == NULL || interface == NULL) 
+			if (mac_address_str_d == NULL || mac_address_str_s == NULL || interface == NULL) 
 			{
       			        fprintf(stderr, "-i, -d and -s options are required.\n");
       				return 5;
