@@ -191,6 +191,7 @@ return 0;
 
 int main (int arc, char **argv)
 {
+	char* interface;
 	clock_t time = 5;
 	pkt_vldi *pkt = new pkt_vldi;
 	unsigned char dest[MAC_ADDRESS_LENGTH];
@@ -215,6 +216,11 @@ int main (int arc, char **argv)
 	{
 		switch (ch)
 		{	
+			
+			case 'i':
+				interface = optarg;
+			break;
+			
 			case 'd':
 				mac_address_str_d = optarg;
 				if (strlen(mac_address_str_d) != 17) 
@@ -246,9 +252,6 @@ int main (int arc, char **argv)
 			    	time = (clock_t)atol(time_str);
 			break;
 			
-			case 'i':
-				char* interface = optarg;
-			break;
 		}
 	}
 			if (src == NULL || dest == NULL || interface == NULL) 
