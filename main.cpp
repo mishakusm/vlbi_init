@@ -191,7 +191,7 @@ return 0;
 
 int main (int arc, char **argv)
 {
-	char[20] interface;
+	char interface[20];
 	
 
 	clock_t time = 5;
@@ -261,7 +261,7 @@ int main (int arc, char **argv)
       			        fprintf(stderr, "-i, -d and -s options are required.\n");
       				return 5;
    			}
-			char[30] nm_interface;
+			char nm_interface[30];
 			
 			nm_interface = "netmap:";
 			strcat(nm_interface, interface);
