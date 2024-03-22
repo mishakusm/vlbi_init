@@ -191,7 +191,7 @@ return 0;
 
 int main (int arc, char **argv)
 {
-	clock_t time;
+	clock_t time = 5;
 	pkt_vldi *pkt = new pkt_vldi;
 	unsigned char dest[MAC_ADDRESS_LENGTH];
 	char *mac_address_str_d;
@@ -247,18 +247,19 @@ int main (int arc, char **argv)
 			break;
 		}
 	}
-			
+			if (src == NULL || dest == NULL) 
+			{
+      			        fprintf(stderr, "Both -d and -s options are required.\n");
+      				return 5;
+   			}			
    			struct nm_desc *nmd;
    			nmd = nm_open("netmap:em0", nullptr, NM_OPEN_NO_MMAP, nullptr);
  			if (nmd == nullptr) 
    			{
     				cerr << "Failed to open netmap device" << endl;
-    				return 5;
+    				return 6;
    			}
 
-	  	      
-			//check = getMacAddress(dest);
-			//check = getMacAddress(src);
 
 			for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
 			{
@@ -277,7 +278,7 @@ int main (int arc, char **argv)
 				if (check!=0)
 				{
 					cout << "Error in sending packet!";
-					return 3;
+					return 7;
 				}
 				current_time = clock();
 			}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
