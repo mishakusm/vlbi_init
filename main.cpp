@@ -153,7 +153,7 @@ int config_header (pkt_vldi *pkt)
 
 
 
-int vdif_pkt_gen (pkt_vldi *pkt)
+int vdif_pkt_gen (pkt_vldi *pkt, char* nm_interface)
 {
     struct netmap_ring *txring;
     txring = (netmap_ring*) malloc (sizeof (netmap_ring));
@@ -161,14 +161,17 @@ int vdif_pkt_gen (pkt_vldi *pkt)
 
     u_int cur=txring->cur;    
     u_int  n = nm_ring_space(txring);
-//   cout << endl << "HERE" << endl << cur << endl;
-//   cout << endl << "HEREE" << endl << txring->slot[cur].buf_idx;
 
-    // copy mac
-   // memcpy(pkt->eh.ether_dhost, "\xff\xff\xff\xff\xff\xff", ETHER_ADDR_LEN); // dest
-   // memcpy(pkt->eh.ether_shost, "\x08\x00\x27\x4b\x45\x6e", ETHER_ADDR_LEN); // src
     pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
- 
+    struct nm_desc *nmd;
+    nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
+    if (nmd == nullptr) 
+    {
+    	cerr << "Failed to open netmap device" << endl;
+    	return 1;
+    }
+    txring = NETMAP_TXRING(nmd->nifp, 0);
+	
     for (int rx =0; rx < n; rx++) 
     {
 	
@@ -263,18 +266,10 @@ int main (int arc, char **argv)
    			}
 			char nm_interface[30];
 			
-			//nm_interface = "netmap:";
+			
 			strncpy(nm_interface,"netmap:",sizeof(char)*8);
 			strcat(nm_interface, interface);
-   			struct nm_desc *nmd;
-   			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
- 			if (nmd == nullptr) 
-   			{
-    				cerr << "Failed to open netmap device" << endl;
-    				return 6;
-   			}
-
-
+   			
 			for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
 			{
 				pkt->eh.ether_dhost[i]=dest[i];
@@ -288,7 +283,7 @@ int main (int arc, char **argv)
 			
    			do 
 			{
-				int check = vdif_pkt_gen (pkt);
+				int check = vdif_pkt_gen (pkt, nm_interface);
 				if (check!=0)
 				{
 					cout << "Error in sending packet!";
