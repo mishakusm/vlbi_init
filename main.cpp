@@ -153,36 +153,43 @@ int config_header (pkt_vldi *pkt)
 
 
 
-int vdif_pkt_gen (pkt_vldi *pkt)
+int vdif_pkt_gen (pkt_vldi *pkt,int time)
 {
+      struct nm_desc *nmd;
+      nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
+      if (nmd == nullptr) 
+      {
+    	    cerr << "Failed to open netmap device" << endl;
+    	    return 1;
+      }
+
+
     struct netmap_ring *txring;
     txring = (netmap_ring*) malloc (sizeof (netmap_ring));
 
 
     u_int cur=txring->cur;    
     u_int  n = nm_ring_space(txring);
-//   cout << endl << "HERE" << endl << cur << endl;
-//   cout << endl << "HEREE" << endl << txring->slot[cur].buf_idx;
 
-    // copy mac
-   // memcpy(pkt->eh.ether_dhost, "\xff\xff\xff\xff\xff\xff", ETHER_ADDR_LEN); // dest
-   // memcpy(pkt->eh.ether_shost, "\x08\x00\x27\x4b\x45\x6e", ETHER_ADDR_LEN); // src
     pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
  
-    for (int rx =0; rx < n; rx++) 
+    do 
     {
-	
-    	u_int buf_idx = txring->slot[cur].buf_idx;
-  	char* tx_buf = NETMAP_BUF(txring, buf_idx);
-	int frame_len = sizeof(pkt);
-	memcpy(tx_buf,  pkt, frame_len);
-	txring->slot[cur].len = frame_len;
-   	txring->cur = nm_ring_next(txring, cur);
-	cur = txring->cur;
-	
-     }
+    		for (int rx =0; rx < n; rx++) 
+    		{
+    			u_int buf_idx = txring->slot[cur].buf_idx;
+  			char* tx_buf = NETMAP_BUF(txring, buf_idx);
+			int frame_len = sizeof(pkt);
+			memcpy(tx_buf,  pkt, frame_len);
+			txring->slot[cur].len = frame_len;
+   			txring->cur = nm_ring_next(txring, cur);
+			cur = txring->cur;
+     		}
+     current_time = clock(); 
+     }while ((current_time - start_time) / CLOCKS_PER_SEC < time);
     config_header (pkt);
     free (txring);
+    nm_close(nmd);
 	
 return 0;
 }
@@ -195,7 +202,8 @@ int main (int arc, char **argv)
 	
 
 	clock_t time = 5;
-	pkt_vldi *pkt = new pkt_vldi;
+	pkt_vldi *pkt;
+	pkt = (pkt_vldi*)malloc(sizeof(pkt_vldi));
 	unsigned char dest[MAC_ADDRESS_LENGTH];
 	char *mac_address_str_d = NULL;
 	unsigned char src[MAC_ADDRESS_LENGTH];
@@ -263,18 +271,10 @@ int main (int arc, char **argv)
    			}
 			char nm_interface[30];
 			
-			//nm_interface = "netmap:";
+			
 			strncpy(nm_interface,"netmap:",sizeof(char)*8);
 			strcat(nm_interface, interface);
-   			struct nm_desc *nmd;
-   			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
- 			if (nmd == nullptr) 
-   			{
-    				cerr << "Failed to open netmap device" << endl;
-    				return 6;
-   			}
-
-
+   			
 			for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
 			{
 				pkt->eh.ether_dhost[i]=dest[i];
@@ -286,17 +286,16 @@ int main (int arc, char **argv)
 			clock_t start_time = clock(); // Запоминаем время начала выполнения
     			clock_t current_time;
 			
-   			do 
+			int check = vdif_pkt_gen (pkt,time);
+			if (check!=0)
 			{
-				int check = vdif_pkt_gen (pkt);
-				if (check!=0)
-				{
-					cout << "Error in sending packet!";
-					return 7;
-				}
-				current_time = clock();
-			}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
-			nm_close(nmd);
+				cout << "Error in sending packet!";
+				return 7;
+			}
+				
+			
+			
+			free(pkt);
 			
 	
 return 0;
