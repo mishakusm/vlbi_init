@@ -162,22 +162,21 @@ int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface)
     	    cerr << "Failed to open netmap device" << endl;
     	    return 1;
       }
-
-
-    struct netmap_ring *txring;
-    txring = (netmap_ring*) malloc (sizeof (netmap_ring));
-
-
-    u_int cur=txring->cur;    
-    u_int  n = nm_ring_space(txring);
-
-    pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
- 
-    clock_t start_time = clock(); // Запоминаем время начала выполнения
-    clock_t current_time;
-	
     do 
     {
+   	 struct netmap_ring *txring;
+	 txring = (netmap_ring*) malloc (sizeof (netmap_ring));
+
+
+   	 u_int cur=txring->cur;    
+    	 u_int  n = nm_ring_space(txring);
+
+    	 pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
+ 
+    	 clock_t start_time = clock(); // Запоминаем время начала выполнения
+    	 clock_t current_time;
+	
+    
     		for (int rx =0; rx < n; rx++) 
     		{
     			u_int buf_idx = txring->slot[cur].buf_idx;
@@ -188,7 +187,7 @@ int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface)
    			txring->cur = nm_ring_next(txring, cur);
 			cur = txring->cur;
      		}
-     current_time = clock(); 
+     	 current_time = clock(); 
      }while ((current_time - start_time) / CLOCKS_PER_SEC < time);
     config_header (pkt);
     free (txring);
