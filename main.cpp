@@ -155,6 +155,8 @@ int config_header (pkt_vldi *pkt)
 
 int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface)
 {
+     clock_t start_time = clock(); // Запоминаем время начала выполнения
+     clock_t current_time;
       struct nm_desc *nmd;
       nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
       if (nmd == nullptr) 
@@ -173,8 +175,7 @@ int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface)
 
     	 pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
  
-    	 clock_t start_time = clock(); // Запоминаем время начала выполнения
-    	 clock_t current_time;
+    	 
 	
     
     		for (int rx =0; rx < n; rx++) 
