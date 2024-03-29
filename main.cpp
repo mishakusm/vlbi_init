@@ -198,7 +198,8 @@ int main (int arc, char **argv)
 	
 
 	clock_t time = 5;
-	pkt_vldi *pkt = new pkt_vldi;
+	pkt_vldi *pkt;
+	pkt = (pkt_vldi*)malloc(sizeof(pkt_vldi));
 	unsigned char dest[MAC_ADDRESS_LENGTH];
 	char *mac_address_str_d = NULL;
 	unsigned char src[MAC_ADDRESS_LENGTH];
@@ -307,7 +308,7 @@ int main (int arc, char **argv)
 				current_time = clock();
 			}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
 			nm_close(nmd);
-			
+			free(pkt);
 	
 return 0;
 
