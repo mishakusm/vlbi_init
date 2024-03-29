@@ -153,13 +153,13 @@ int config_header (pkt_vldi *pkt)
 
 
 
-int vdif_pkt_gen (pkt_vldi *pkt, struct nm_desc nmd)
+int vdif_pkt_gen (pkt_vldi *pkt, struct nm_desc* nmd)
 {
     config_header (pkt);
     struct netmap_ring *txring;
     txring = (netmap_ring*) malloc (sizeof (netmap_ring));
     u_int  n = nm_ring_space(txring);
-    txring = NETMAP_TXRING(nmd.nifp, 0);
+    txring = NETMAP_TXRING(nmd->nifp, 0);
 
     u_int cur=txring->cur;    
     
@@ -179,7 +179,7 @@ int vdif_pkt_gen (pkt_vldi *pkt, struct nm_desc nmd)
 	cur = txring->cur;
      }
 	
-    if (ioctl(nmd.fd, NIOCTXSYNC, NULL) < 0) 
+    if (ioctl(nmd->fd, NIOCTXSYNC, NULL) < 0) 
     {
         perror("Failed to sync Netmap TX rings");
         nm_close(nmd);
@@ -269,7 +269,7 @@ int main (int arc, char **argv)
 			
 			strncpy(nm_interface,"netmap:",sizeof(char)*8);
 			strcat(nm_interface, interface);
-			struct nm_desc nmd;
+			struct nm_desc* nmd;
    			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
     			if (nmd == nullptr) 
    			{
