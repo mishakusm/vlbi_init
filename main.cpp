@@ -270,11 +270,19 @@ int main (int arc, char **argv)
 			strncpy(nm_interface,"netmap:",sizeof(char)*8);
 			strcat(nm_interface, interface);
 			struct nm_desc* nmd;
+			nmd = (struct nm_desc*)malloc(sizeof(struct nm_desc));
+
+   			if (nmd == NULL) 
+			{
+        			cerr << "Не удалось выделить память для nmd";
+        			return 6;
+    			}
+
    			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
     			if (nmd == nullptr) 
    			{
     				cerr << "Failed to open netmap device" << endl;
-    				return 6;
+    				return 7;
     			}
 			
 			for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
@@ -293,8 +301,8 @@ int main (int arc, char **argv)
 				int check = vdif_pkt_gen (pkt, nmd);
 				if (check!=0)
 				{
-					cout << "Error in sending packet!";
-					return 7;
+					cerr << "Error in sending packet!";
+					return 8;
 				}
 				current_time = clock();
 			}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
