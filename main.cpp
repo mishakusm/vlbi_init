@@ -153,23 +153,23 @@ int config_header (pkt_vldi *pkt)
 
 
 
-int vdif_pkt_gen (pkt_vldi *pkt, netmap_if *nif)
+int vdif_pkt_gen (pkt_vldi *pkt, struct nm_desc nmd)
 {
+    config_header (pkt);
     struct netmap_ring *txring;
     txring = (netmap_ring*) malloc (sizeof (netmap_ring));
-
+    u_int  n = nm_ring_space(txring);
+    txring = NETMAP_TXRING(nmd.nifp, 0);
 
     u_int cur=txring->cur;    
-    u_int  n = nm_ring_space(txring);
-
+    
     pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
     
     
-    txring = NETMAP_TXRING(nif, 0);
+    
 	
     for (int rx =0; rx < n; rx++) 
     {
-	
     	u_int buf_idx = txring->slot[cur].buf_idx;
   	char* tx_buf = NETMAP_BUF(txring, buf_idx);
 	int frame_len = sizeof(pkt);
@@ -177,10 +177,15 @@ int vdif_pkt_gen (pkt_vldi *pkt, netmap_if *nif)
 	txring->slot[cur].len = frame_len;
    	txring->cur = nm_ring_next(txring, cur);
 	cur = txring->cur;
-	
      }
-    config_header (pkt);
-    free (txring);
+	
+    if (ioctl(nmd.fd, NIOCTXSYNC, NULL) < 0) 
+    {
+        perror("Failed to sync Netmap TX rings");
+        nm_close(nmd);
+        return 1;
+    }    
+    free(txring);
 	
 return 0;
 }
@@ -264,14 +269,14 @@ int main (int arc, char **argv)
 			
 			strncpy(nm_interface,"netmap:",sizeof(char)*8);
 			strcat(nm_interface, interface);
-			struct nm_desc *nmd;
+			struct nm_desc nmd;
    			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
     			if (nmd == nullptr) 
    			{
     				cerr << "Failed to open netmap device" << endl;
     				return 6;
     			}
-			struct netmap_if *nif = nmd->nifp;
+			
 			for (int i=0; i<MAC_ADDRESS_LENGTH; i++)
 			{
 				pkt->eh.ether_dhost[i]=dest[i];
@@ -285,7 +290,7 @@ int main (int arc, char **argv)
 			
    			do 
 			{
-				int check = vdif_pkt_gen (pkt, nif);
+				int check = vdif_pkt_gen (pkt, nmd);
 				if (check!=0)
 				{
 					cout << "Error in sending packet!";
