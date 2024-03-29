@@ -153,7 +153,7 @@ int config_header (pkt_vldi *pkt)
 
 
 
-int vdif_pkt_gen (pkt_vldi *pkt,int time)
+int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface)
 {
       struct nm_desc *nmd;
       nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
@@ -173,6 +173,9 @@ int vdif_pkt_gen (pkt_vldi *pkt,int time)
 
     pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
  
+    clock_t start_time = clock(); // Запоминаем время начала выполнения
+    clock_t current_time;
+	
     do 
     {
     		for (int rx =0; rx < n; rx++) 
@@ -283,10 +286,8 @@ int main (int arc, char **argv)
 			
 		
 
-			clock_t start_time = clock(); // Запоминаем время начала выполнения
-    			clock_t current_time;
 			
-			int check = vdif_pkt_gen (pkt,time);
+			int check = vdif_pkt_gen (pkt,time,nm_interface);
 			if (check!=0)
 			{
 				cout << "Error in sending packet!";
