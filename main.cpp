@@ -153,19 +153,9 @@ int config_header (pkt_vldi *pkt)
 
 
 
-int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface)
+int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface, struct nm_desc *nmd)
 {
-     clock_t start_time = clock(); // Запоминаем время начала выполнения
-     clock_t current_time;
-      struct nm_desc *nmd;
-      nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
-      if (nmd == nullptr) 
-      {
-    	    cerr << "Failed to open netmap device" << endl;
-    	    return 1;
-      }
-    do 
-    {
+
    	 struct netmap_ring *txring;
 	 txring = (netmap_ring*) malloc (sizeof (netmap_ring));
 
@@ -175,24 +165,29 @@ int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface)
 
     	 pkt->eh.ether_type = htons(ETHERTYPE_IP); // protocol
  
-    	 
-	
     
-    		for (int rx =0; rx < n; rx++) 
-    		{
-    			u_int buf_idx = txring->slot[cur].buf_idx;
-  			char* tx_buf = NETMAP_BUF(txring, buf_idx);
-			int frame_len = sizeof(pkt);
-			memcpy(tx_buf,  pkt, frame_len);
-			txring->slot[cur].len = frame_len;
-   			txring->cur = nm_ring_next(txring, cur);
-			cur = txring->cur;
-     		}
-     	 current_time = clock(); 
-     }while ((current_time - start_time) / CLOCKS_PER_SEC < time);
+    	 for (int rx =0; rx < n; rx++) 
+    	 {
+    		u_int buf_idx = txring->slot[cur].buf_idx;
+  		char* tx_buf = NETMAP_BUF(txring, buf_idx);
+		int frame_len = sizeof(pkt);
+		memcpy(tx_buf,  pkt, frame_len);
+		txring->slot[cur].len = frame_len;
+   		txring->cur = nm_ring_next(txring, cur);
+		cur = txring->cur;
+	 }
+	if (ioctl(nmd->fd, NIOCTXSYNC, NULL) < 0) 
+    	{
+      		perror("Failed to sync Netmap TX rings");
+        	nm_close(nmd);
+       		return 1;
+	} 
+     	 
+     free (txring);
+     
     config_header (pkt);
-    free (txring);
-    nm_close(nmd);
+    
+   
 	
 return 0;
 }
@@ -284,18 +279,32 @@ int main (int arc, char **argv)
 				pkt->eh.ether_shost[i]=src[i];
 			}
 			
-		
+		        static struct nm_desc *nmd;
+      			nmd = nm_open(nm_interface, nullptr, NM_OPEN_NO_MMAP, nullptr);
+     			if (nmd == nullptr) 
+    			{
+    	  		  	cerr << "Failed to open netmap device" << endl;
+    	 		   	return 1;
+     			}
 
+
+
+	   	        clock_t start_time = clock(); // Запоминаем время начала выполнения
+    			clock_t current_time;
+      
+    			do 
+    			{
 			
-			int check = vdif_pkt_gen (pkt,time,nm_interface);
-			if (check!=0)
-			{
-				cout << "Error in sending packet!";
-				return 7;
-			}
-				
+				int check = vdif_pkt_gen (pkt,nm_interface, nmd);
+				if (check!=0)
+				{
+					cout << "Error in sending packet!";
+					return 7;
+				}
+			current_time = clock(); 
+			}while ((current_time - start_time) / CLOCKS_PER_SEC < time);
 			
-			
+			nm_close(nmd);
 			free(pkt);
 			
 	
