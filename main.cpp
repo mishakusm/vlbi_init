@@ -153,7 +153,7 @@ int config_header (pkt_vldi *pkt)
 
 
 
-int vdif_pkt_gen (pkt_vldi *pkt,int time,char* nm_interface, struct nm_desc *nmd)
+int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 {
 
    	 struct netmap_ring *txring;
