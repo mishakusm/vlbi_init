@@ -212,7 +212,7 @@ int main (int arc, char **argv)
 	{
 		//printf("%d\n", pkt->VDIF_Data_Frame.body[k]);
 	}
-	set_pkt_header(pkt);
+	set_pkt_header(pkt, rate);
 	for (int i = 0; i <= 8; i++)
 	{
 		printf("%d\n", pkt->VDIF_Data_Frame.vdif_header[i].to_int);
@@ -255,12 +255,15 @@ int main (int arc, char **argv)
         				return 4;
 				}
 			break;
+			
 			case 't':
 				char *time_str = optarg;
 			    	time = (clock_t)atol(time_str);
 			break;
-			case 't':
-				rate = optarg;
+			
+			case 'r':
+				char *rate_str = optarg;
+				rate = (int)atol(rate_str);
 			break;
 			
 		}
