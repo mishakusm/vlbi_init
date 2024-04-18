@@ -196,8 +196,9 @@ return 0;
 
 int main (int arc, char **argv)
 {
+	char *rate_str;
 	char* interface;
-	
+	char *time_str;
 	int rate = 50000;
 	clock_t time = 5;
 	pkt_vldi *pkt;
@@ -256,11 +257,11 @@ int main (int arc, char **argv)
 				}
 			break;
 			case 'r':
-				char *rate_str = optarg;
+				rate_str = optarg;
 				rate = (int)atol(rate_str);
 			break;
 			case 't':
-				char *time_str = optarg;
+				time_str = optarg;
 			    	time = (clock_t)atol(time_str);
 			break;
 			
