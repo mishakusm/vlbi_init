@@ -133,6 +133,7 @@ int config_header (pkt_vldi *pkt)
 	{
 		pkt->VDIF_Data_Frame.vdif_header[1].to_int = pkt->VDIF_Data_Frame.vdif_header[1].to_int & 0xFE000000;
 		number_df = pkt->VDIF_Data_Frame.vdif_header[1].to_int & 0x7FFFFF;
+		sleep(1);
 	}
 
         cout << "Frame Number in second:" << number_df << endl;
