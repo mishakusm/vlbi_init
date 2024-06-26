@@ -157,6 +157,38 @@ int config_header (pkt_vldi *pkt)
 int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 {
 
+	struct netmap_if *nifp;
+	struct netmap_ring *ring;
+	struct nmreq	nmr;
+	struct pollfd fds;
+
+	   fd =	open("/dev/netmap", O_RDWR);
+	   bzero(&nmr, sizeof(nmr));
+	   strcpy(nmr.nr_name, nm_interface);
+	   nmr.nm_version = NETMAP_API;
+	   ioctl(fd, NIOCREGIF,	&nmr);
+	   p = mmap(0, nmr.nr_memsize, fd);
+	   nifp	= NETMAP_IF(p, nmr.nr_offset);
+	   ring	= NETMAP_TXRING(nifp, 0);
+	   fds.fd = fd;
+	   fds.events =	POLLOUT;
+	   for (;;) 
+	   {
+	       poll(&fds, 1, -1);
+	       while (!nm_ring_empty(ring)) 
+	       {
+		   int frame_len = sizeof(pkt);
+		   i = ring->cur;
+		   buf = NETMAP_BUF(ring, ring->slot[i].buf_index);
+		   //... prepare packet in buf ...
+		   memcpy(buf, pkt, frame_len);
+
+		   ring->slot[i].len = frame_len;
+		   ring->head =	ring->cur = nm_ring_next(ring, i);
+	       }
+	   }
+	/*
+
    	 struct netmap_ring *txring;
 	 txring = (netmap_ring*) malloc (sizeof (netmap_ring));
 
@@ -187,7 +219,7 @@ int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
      free (txring);
      
     config_header (pkt);
-    
+    */
    
 	
 return 0;
