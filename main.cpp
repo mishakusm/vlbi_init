@@ -167,7 +167,7 @@ int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 	   strcpy(nmr.nr_name, nm_interface);
 	   nmr.nr_version = NETMAP_API;
 	   ioctl(fd, NIOCREGIF,	&nmr);
-	   void* p = mmap(0, nmr.nr_memsize, fd);
+	   void* p = mmap(0, nmr.nr_memsize,PROT_READ, MAP_SHARED, fd, 0);
 	   nifp	= NETMAP_IF(p, nmr.nr_offset);
 	   ring	= NETMAP_TXRING(nifp, 0);
 	   fds.fd = fd;
@@ -179,7 +179,7 @@ int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 	       {
 		   int frame_len = sizeof(pkt);
 		   uint32_t i = ring->cur;
-		   char *buf = NETMAP_BUF(ring, ring->slot[i].buf_index);
+		   char *buf = NETMAP_BUF(ring, ring->slot[i].buf_idx);
 		   //... prepare packet in buf ...
 		   memcpy(buf, pkt, frame_len);
 
