@@ -16,7 +16,7 @@
 #include <net/netmap_user.h>
 #include <arpa/inet.h>
 #include <time.h>
-
+#include <poll.h>
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -162,12 +162,12 @@ int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 	struct nmreq	nmr;
 	struct pollfd fds;
 
-	   fd =	open("/dev/netmap", O_RDWR);
+	   int fd =	open("/dev/netmap", O_RDWR);
 	   bzero(&nmr, sizeof(nmr));
 	   strcpy(nmr.nr_name, nm_interface);
-	   nmr.nm_version = NETMAP_API;
+	   nmr.nr_version = NETMAP_API;
 	   ioctl(fd, NIOCREGIF,	&nmr);
-	   p = mmap(0, nmr.nr_memsize, fd);
+	   void* p = mmap(0, nmr.nr_memsize, fd);
 	   nifp	= NETMAP_IF(p, nmr.nr_offset);
 	   ring	= NETMAP_TXRING(nifp, 0);
 	   fds.fd = fd;
@@ -178,8 +178,8 @@ int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 	       while (!nm_ring_empty(ring)) 
 	       {
 		   int frame_len = sizeof(pkt);
-		   i = ring->cur;
-		   buf = NETMAP_BUF(ring, ring->slot[i].buf_index);
+		   uint32_t i = ring->cur;
+		   char *buf = NETMAP_BUF(ring, ring->slot[i].buf_index);
 		   //... prepare packet in buf ...
 		   memcpy(buf, pkt, frame_len);
 
