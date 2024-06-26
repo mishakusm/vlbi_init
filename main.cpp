@@ -159,6 +159,7 @@ int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 
 	struct netmap_if *nifp;
 	struct netmap_ring *ring;
+	ring = (netmap_ring*) malloc (sizeof (netmap_ring));
 	struct nmreq	nmr;
 	struct pollfd fds;
 
@@ -187,6 +188,8 @@ int vdif_pkt_gen (pkt_vldi *pkt,char* nm_interface, struct nm_desc *nmd)
 		   ring->head =	ring->cur = nm_ring_next(ring, i);
 	       }
 	   }
+	free (ring);
+     
 	/*
 
    	 struct netmap_ring *txring;
