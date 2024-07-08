@@ -1390,6 +1390,7 @@ send_packets(struct netmap_ring *ring, struct pkt *pkt, void *frame,
 	}
 	if (sent) {
 		slot->flags |= NS_REPORT;
+		slot->flags |= NS_MOREFRAG;
 		ring->head = ring->cur = head;
 	}
 	if (sent < count) {
