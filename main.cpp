@@ -619,7 +619,7 @@ get_if_mtu(const struct glob_arg *g)
 }
 
 static struct targ *targs;
-static int global_nthreads;t
+static int global_nthreads;
 
 /* control-C handler */
 static void
