@@ -1318,6 +1318,8 @@ static int
 send_packets(struct netmap_ring *ring, struct pkt *pkt, void *frame,
 		int size, struct targ *t, u_int count, int options)
 {
+	set_pkt_header(pkt);
+	config_header(pkt);
 	u_int n, sent, head = ring->head;
 	u_int frags = t->frags;
 	u_int frag_size = t->frag_size;
