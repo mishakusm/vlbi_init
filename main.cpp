@@ -263,11 +263,11 @@ int config_header(struct pkt *pkt)
         sleep(1);
     }
 
-    printf("Frame Number in second: %d\n", number_df);
+   // printf("Frame Number in second: %d\n", number_df);
     int cur_sec = pkt->ipv4.header[1].to_int & 0x3FFFFFFF;
-    printf("Seconds: %d\t", cur_sec);
+   // printf("Seconds: %d\t", cur_sec);
     int frame_len = (pkt->ipv4.header[1].to_int & 0xffffff) * 8;
-    printf("Frame length: %d\t", frame_len);
+  //  printf("Frame length: %d\t", frame_len);
 
     // Номер кадра в секунде
     pkt->ipv4.header[1].to_int = pkt->ipv4.header[1].to_int + 1;
@@ -1828,6 +1828,7 @@ sender_body(void *data)
 		for (j = 0; j < txring->num_slots; j++) {
 			slot = &txring->slot[j];
 			slot->flags = NS_BUF_CHANGED;
+			slot->flags = NS_MOREFRAG;
 		}
 	}
 
