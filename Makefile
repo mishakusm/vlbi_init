@@ -3,7 +3,7 @@
 #
 # For multiple programs using a single source file each,
 # we can just define 'progs' and create custom targets.
-PROGS   =       pkt-gen
+PROGS	=	pkt-gen 
 
 CLEANFILES = $(PROGS) *.o
 MAN=
@@ -24,10 +24,4 @@ CFLAGS += -Wno-cast-align
 all: $(PROGS)
 
 pkt-gen: pkt-gen.o
-        $(CC) $(CFLAGS) -o pkt-gen pkt-gen.o $(LDFLAGS)
-
-
-
-
-
-
+	$(CC) $(CFLAGS) -o pkt-gen pkt-gen.o $(LDFLAGS)
