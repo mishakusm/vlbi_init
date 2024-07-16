@@ -2768,7 +2768,8 @@ static void
 main_thread(struct glob_arg *g)
 {
 	int i;
-
+	
+	struct pkt *pkt_vdif = &targ->pkt;
 	struct my_ctrs prev, cur;
 	double delta_t;
 	struct timeval tic, toc;
@@ -2843,7 +2844,7 @@ main_thread(struct glob_arg *g)
 			(unsigned long long)usec,
 			abs, (int)cur.min_space);
 		prev = cur;
-
+		config_header(pkt_vdif);
 		if (done == g->nthreads)
 			break;
 	}
