@@ -210,15 +210,14 @@ union word_vdif
 struct pkt {
         struct virt_header vh;
         struct ether_header eh;
+	union word_vdif header[8];
         union {
                 struct {
-                        union word_vdif header[8];
                         struct ip ip;
                         struct udphdr udp;
                         uint8_t body[MAX_BODYSIZE];     /* hardwired */
                 } ipv4;
                 struct {
-                        union word_vdif header[8];
                         struct ip6_hdr ip;
                         struct udphdr udp;
                         uint8_t body[MAX_BODYSIZE];     /* hardwired */
@@ -241,8 +240,7 @@ int set_pkt_header(struct pkt *pkt)
 
     for (int i = 0; i < 8; ++i)
     {
-        fread(pkt->ipv4.header[i].bytes, sizeof(uint32_t), 1, inputFile);
-        fread(pkt->ipv6.header[i].bytes, sizeof(uint32_t), 1, inputFile);
+        fread(pkt->header[i].bytes, sizeof(uint32_t), 1, inputFile);  
     }
 
     fclose(inputFile);
@@ -254,23 +252,22 @@ int set_pkt_header(struct pkt *pkt)
 int config_header(struct pkt *pkt) 
 {
     // Парсинг номера кадра, секунд, длины кадра
-    int number_df = pkt->ipv4.header[1].to_int & 0x7FFFFF;
+    int number_df = pkt->header[1].to_int & 0x7FFFFF;
     if (number_df > 49999) 
     {
-        pkt->ipv4.header[1].to_int = pkt->ipv4.header[1].to_int & 0xFE000000;
-        pkt->ipv6.header[1].to_int = pkt->ipv6.header[1].to_int & 0xFE000000;
-        number_df = pkt->ipv4.header[1].to_int & 0x7FFFFF;
+        pkt->header[1].to_int = pkt->header[1].to_int & 0xFE000000;
+        number_df = pkt->header[1].to_int & 0x7FFFFF;
         sleep(1);
     }
 
    // printf("Frame Number in second: %d\n", number_df);
-    int cur_sec = pkt->ipv4.header[1].to_int & 0x3FFFFFFF;
+    int cur_sec = pkt->header[1].to_int & 0x3FFFFFFF;
    // printf("Seconds: %d\t", cur_sec);
-    int frame_len = (pkt->ipv4.header[1].to_int & 0xffffff) * 8;
+    int frame_len = (pkt->header[1].to_int & 0xffffff) * 8;
   //  printf("Frame length: %d\t", frame_len);
 
     // Номер кадра в секунде
-    pkt->ipv4.header[1].to_int = pkt->ipv4.header[1].to_int + 1;
+    pkt->header[1].to_int = pkt->header[1].to_int + 1;
 
     return 0;
 }
@@ -1319,7 +1316,7 @@ send_packets(struct netmap_ring *ring, struct pkt *pkt, void *frame,
 		int size, struct targ *t, u_int count, int options)
 {
 	set_pkt_header(pkt);
-	config_header(pkt);
+	
 	u_int n, sent, head = ring->head;
 	u_int frags = t->frags;
 	u_int frag_size = t->frag_size;
@@ -1390,7 +1387,7 @@ send_packets(struct netmap_ring *ring, struct pkt *pkt, void *frame,
 	}
 	if (sent) {
 		slot->flags |= NS_REPORT;
-		slot->flags |= NS_MOREFRAG;
+		//slot->flags |= NS_MOREFRAG;
 		ring->head = ring->cur = head;
 	}
 	if (sent < count) {
