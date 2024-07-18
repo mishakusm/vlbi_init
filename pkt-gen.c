@@ -200,6 +200,12 @@ struct virt_header {
 
 #define MAX_BODYSIZE	65536
 
+
+/////////////////////////////////////////////////////
+//             VDIF MOD                            //
+/////////////////////////////////////////////////////
+
+
 union word_vdif
 {
     char bytes[4];
@@ -271,6 +277,28 @@ int config_header(struct pkt *pkt)
 
     return 0;
 }
+
+int fill_pkt_body (pkt_vldi *pkt)
+{
+	int i=0;
+	for (int k = 0; k < MAX_BODYSIZE; k++)
+	{
+		pkt->ipv4.body[k]=i;
+		pkt->ipv6.body[k]=i;
+		i++;
+		if (i==255) i=0;
+		//printf("%d\n", pkt->VDIF_Data_Frame.body[k]);
+	}
+	return 0;
+}
+
+
+
+/////////////////////////////////////////////////////
+//             VDIF MOD                            //
+/////////////////////////////////////////////////////
+
+
 
 
 
