@@ -278,7 +278,7 @@ int config_header(struct pkt *pkt)
     return 0;
 }
 
-int fill_pkt_body (pkt_vldi *pkt)
+int fill_pkt_body (pkt *pkt)
 {
 	int i=0;
 	for (int k = 0; k < MAX_BODYSIZE; k++)
