@@ -1853,7 +1853,7 @@ sender_body(void *data)
 		for (j = 0; j < txring->num_slots; j++) {
 			slot = &txring->slot[j];
 			slot->flags = NS_BUF_CHANGED;
-			slot->flags = NS_MOREFRAG;
+			//slot->flags = NS_MOREFRAG;
 		}
 	}
 
