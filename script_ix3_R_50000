@@ -1,1 +1,0 @@
-sudo ./pkt-gen -f tx -i ix3 -D a0:36:9f:74:c1:8c -r -v -l 5120 -R 50000
