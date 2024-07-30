@@ -1344,6 +1344,7 @@ send_packets(struct netmap_ring *ring, struct pkt *pkt, void *frame,
 		int size, struct targ *t, u_int count, int options)
 {
 	set_pkt_header(pkt);
+	config_header(pkt);
 	fill_pkt_body(pkt);
 	
 	u_int n, sent, head = ring->head;
